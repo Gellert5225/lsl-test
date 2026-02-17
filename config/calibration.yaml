@@ -1,0 +1,32 @@
+# Calibration Offsets — Digital Twin Sync Engine
+# Stored latency offsets from the last sync-event calibration.
+#
+# These are applied as: corrected_ts = lsl_timestamp + latency_offset
+# Reference stream (Mocap) always has offset 0.0.
+#
+# Procedure:
+#   1. Perform 3-5 jump landings (~30 seconds)
+#   2. Detect impact onset per stream (threshold detection)
+#   3. Compute offset = -(stream_onset - reference_onset)
+#   4. Validate with one more sync event (residual should be <2ms)
+#
+# CRITICAL: Do NOT calibrate on EMG onset — muscles fire 50-80ms
+# BEFORE impact (pre-activation). Calibrate on the IMPACT event only.
+
+calibration:
+  reference_stream: "Mocap"
+  timestamp: null               # ISO 8601 timestamp of last calibration
+  num_events: 0                 # Number of sync events used
+  validated: false              # Has a validation event been performed?
+  validation_error_ms: null     # Max residual from validation event
+
+  offsets:
+    Mocap: 0.0                  # Reference — always zero
+    IMU-Knee: 0.0               # Will be ~-0.007 after calibration
+    EMG-Quad: 0.0               # Will be ~-0.015 after calibration
+
+  # Per-event onset times (for diagnostics)
+  onset_history:
+    Mocap: []
+    IMU-Knee: []
+    EMG-Quad: []

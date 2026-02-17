@@ -1,0 +1,74 @@
+# Sensor Configuration — Digital Twin Sync Engine
+# Per-sensor settings: rates, channels, buffer sizes, LSL metadata.
+
+streams:
+  imu:
+    name: "IMU-Knee"
+    lsl_type: "IMU"
+    lsl_name: "IMU-Orientation"
+    num_channels: 7
+    channel_labels:
+      - qw
+      - qx
+      - qy
+      - qz
+      - ax
+      - ay
+      - az
+    sample_rate: 200.0
+    buffer_seconds: 2.0
+    transport: BLE
+    device_id: "xsens_dot_1"
+    notes: >
+      BLE bursts of 2-3 samples every ~15ms.
+      Use SDK hardware timestamps, NOT local_clock() at arrival.
+
+  emg:
+    name: "EMG-Quad"
+    lsl_type: "EMG"
+    lsl_name: "EMG-Quad"
+    num_channels: 8
+    channel_labels:
+      - VastusLat_L
+      - VastusMed_L
+      - RectusFem_L
+      - BicepsFem_L
+      - VastusLat_R
+      - VastusMed_R
+      - RectusFem_R
+      - BicepsFem_R
+    sample_rate: 2000.0
+    buffer_seconds: 2.0
+    transport: WiFi
+    device_id: "delsys_unit_7"
+    chunk_size: 48
+    notes: >
+      Chunk buffer: 48 samples at 2kHz (~24ms) accumulate before send.
+      Always use push_chunk with per-sample timestamps from Delsys SDK.
+
+  mocap:
+    name: "Mocap"
+    lsl_type: "Mocap"
+    lsl_name: "Mocap-Skeleton"
+    num_channels: 69   # 23 markers x 3 axes
+    num_markers: 23
+    sample_rate: 120.0
+    buffer_seconds: 2.0
+    transport: Ethernet
+    device_id: "optitrack_1"
+    notes: >
+      Most stable stream. Hardware-triggered cameras, ~0.5ms jitter.
+      Reference stream for sync-event calibration.
+
+# Sync engine output
+output:
+  target_rate: 60.0          # Hz — matches display refresh
+  quality_stale_threshold: 0.3   # flag streams below this quality
+
+# EMG envelope processing (applied AFTER sync alignment)
+emg_envelope:
+  bandpass_low: 20.0         # Hz — removes motion artefact
+  bandpass_high: 450.0       # Hz — removes high-freq noise
+  bandpass_order: 4
+  envelope_cutoff: 6.0       # Hz — clinical standard 4-6 Hz
+  envelope_order: 4
